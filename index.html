@@ -208,44 +208,102 @@ var map = {
 		var newY = y;
 		var count = 0;
 		while (newX > 0) {
-			if (balls[newX][newY] === -1 || balls[newX][newY].color != color) break;
+			if (balls[newX][y] === -1 || balls[newX][y].color != color) break;
 			++count;
 			--newX;
 		}
 		newX = x + 1;
 		while (newX <= 9) {
-			if (balls[newX][newY] === -1 || balls[newX][newY].color != color) break;
+			if (balls[newX][y] === -1 || balls[newX][y].color != color) break;
 			++count;
 			++newX;
 		}
 		if (count >= 4) {
 			for (i = newX - count - 1; i < newX; i++) {
-				if (balls[i][newY] != -1) {
-					balls[i][newY].clear();
-					balls[i][newY] = -1;
+				if (balls[i][y] != -1) {
+					balls[i][y].clear();
+					balls[i][y] = -1;
 				}				
 			}
 		}
+		console.log("x" + count);
 
 		count = 0;
 		newY = y - 1;
 		while (newY > 0) {
-			if (balls[newX][newY] === -1 || balls[newX][newY].color != color) break;
+			if (balls[x][newY] === -1 || balls[x][newY].color != color) break;
 			++count;
 			--newY;
 		}
 		newY = y + 1;
 		while (newY <= 9) {
-			if (balls[newX][newY] === -1 || balls[newX][newY].color != color) break;
+			if (balls[x][newY] === -1 || balls[x][newY].color != color) break;
 			++count;
 			++newY;
 		}
 		if (count >= 4) {
 			for (i = newY - count - 1; i < newY; i++) {
-				if (balls[newX][i] != -1) {
-					balls[newX][i].clear();
-					balls[newX][i] = -1;
+				if (balls[x][i] != -1) {
+					balls[x][i].clear();
+					balls[x][i] = -1;
 				}	
+			}
+		}
+		console.log("y" + count);
+
+		count = 0;
+		newY = y - 1;
+		newX = x - 1;
+		while (newY > 0 && newX > 0) {
+			if (balls[newX][newY] === -1 || balls[newX][newY].color != color) break;
+			++count;
+			--newY;
+			--newX;
+		}
+		newY = y + 1;
+		newX = x + 1;
+		while (newY <= 9 && newX <= 9) {
+			if (balls[newX][newY] === -1 || balls[newX][newY].color != color) break;
+			++count;
+			++newY;
+			++newX;
+		}
+		if (count >= 4) {
+			j = newY - count - 1;
+			for (i = newX - count - 1; i < newX; i++) {
+				if (balls[i][j] != -1) {
+					balls[i][j].clear();
+					balls[i][j] = -1;
+				}
+				++j;
+			}
+		}
+
+		count = 0;
+		newY = y - 1;
+		newX = x + 1;
+		while (newY > 0 && newX <= 9) {
+			if (balls[newX][newY] === -1 || balls[newX][newY].color != color) break;
+			++count;
+			--newY;
+			++newX;
+		}
+		newY = y + 1;
+		newX = x - 1;
+		while (newY <= 9 && newX > 0) {
+			if (balls[newX][newY] === -1 || balls[newX][newY].color != color) break;
+			++count;
+			++newY;
+			--newX;
+		}
+		if (count >= 4) {
+			j = newY - count - 1;
+			for (i = newX + count + 1; i > newX; i--) {
+				if (balls[i][j] != -1) {
+					balls[i][j].clear();
+					balls[i][j] = -1;
+				}
+				++j;
 			}
 		}
 	}
