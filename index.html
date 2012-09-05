@@ -18,7 +18,6 @@ function onClick(e) {
 			if (map.findPath(map.selectedX, map.selectedY, x, y)) {
 				balls[map.selectedX][map.selectedY].moveTo(x, y);
 				map.selected = false;
-				map.check(x, y);
 			}
 			else console.log("can't get there = = ");
 		}
@@ -90,7 +89,7 @@ function Ball(x, y, color)
 		this.y = y;
 		balls[x][y] = this;
 		this.draw();
-		generate();
+		if (!map.check(x, y)) generate();
 	}
 }
 
@@ -203,6 +202,7 @@ var map = {
 		return false;
 	},
 	check: function(x, y) {
+		var found = false;
 		var color = balls[x][y].color;
 		var newX = x - 1;
 		var newY = y;
@@ -219,6 +219,7 @@ var map = {
 			++newX;
 		}
 		if (count >= 4) {
+			found = true;
 			for (i = newX - count - 1; i < newX; i++) {
 				if (balls[i][y] != -1) {
 					balls[i][y].clear();
@@ -242,6 +243,7 @@ var map = {
 			++newY;
 		}
 		if (count >= 4) {
+			found = true;
 			for (i = newY - count - 1; i < newY; i++) {
 				if (balls[x][i] != -1) {
 					balls[x][i].clear();
@@ -269,6 +271,7 @@ var map = {
 			++newX;
 		}
 		if (count >= 4) {
+			found = true;
 			j = newY - count - 1;
 			for (i = newX - count - 1; i < newX; i++) {
 				if (balls[i][j] != -1) {
@@ -297,6 +300,7 @@ var map = {
 			--newX;
 		}
 		if (count >= 4) {
+			found = true;
 			j = newY - count - 1;
 			for (i = newX + count + 1; i > newX; i--) {
 				if (balls[i][j] != -1) {
@@ -306,6 +310,7 @@ var map = {
 				++j;
 			}
 		}
+		return found;
 	}
 }
 
