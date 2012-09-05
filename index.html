@@ -6,6 +6,7 @@ canvas.onclick = onClick;
 var ctx  = canvas.getContext("2d");
 var colors = ["red", "#039518", "#ff00dc", "#ff6a00", "gray", "#0094ff", "#d2ce00"];
 var balls = new Array(10);
+var newBalls = [];
 
 function onClick(e) {
 	var px = e.offsetX - map.startX;
@@ -29,10 +30,8 @@ function onClick(e) {
 	}
 }
 
-function Ball(x, y, color)
+function Ball(color)
 {
-	this.x = x;
-	this.y = y;
 	this.color = color;
 	this.draw = function() {
 		var px = map.startX + map.cellSize * (this.x - 0.5);
@@ -89,7 +88,18 @@ function Ball(x, y, color)
 		this.y = y;
 		balls[x][y] = this;
 		this.draw();
-		if (!map.check(x, y)) generate();
+		if (!map.check(x, y)) map.generate();
+	}
+	this.place = function() {
+		var randomX, randomY;
+		do {
+			randomX = Math.ceil(Math.random() * 9);
+			randomY = Math.ceil(Math.random() * 9);
+		} while(balls[randomX][randomY] != -1);
+		this.x = randomX;
+		this.y = randomY;
+		balls[randomX][randomY] = this;
+		this.draw();
 	}
 }
 
@@ -311,30 +321,31 @@ var map = {
 			}
 		}
 		return found;
+	},
+	generate: function() {
+		while(newBalls.length) {
+			temp = newBalls.shift();
+			temp.place();
+		}
+		for (var i = 1; i <= 3; i++) {
+			var color = colors[Math.floor(Math.random() * colors.length)];
+			var ball = new Ball(color);
+			ball.drawNew(i);
+			newBalls.push(ball);
+		}
 	}
 }
 
-
+/*
 function generate() {
 	for (var i = 1; i <= 3; i++) {
 		var color = colors[Math.floor(Math.random() * colors.length)];
-		//var randomX = Math.ceil(Math.random() * 9);
-		//var randomY = Math.ceil(Math.random() * 9);
-		var randomX, randomY;
-		do {
-			randomX = Math.ceil(Math.random() * 9);
-			randomY = Math.ceil(Math.random() * 9);
-		} while(balls[randomX][randomY] != -1);
-		var ball = new Ball(randomX, randomY, color);
-		balls[randomX][randomY] = ball;
-		console.log (balls[randomX][randomY]);
-		//balls.push(ball);
+		var ball = new Ball(color);
 		ball.drawNew(i);
-		ball.draw();
-		//map.drawNewBall(balls[i-1], i);
+		newBalls.push(ball);
 	}
-
 }
+*/
 
 for (i = 1; i <= 9; i++) {
 	balls[i] = new Array(10);
@@ -343,6 +354,7 @@ for (i = 1; i <= 9; i++) {
 	}
 }
 map.drawGrid();
-generate();
+map.generate();
+map.generate();
 
 </script>
