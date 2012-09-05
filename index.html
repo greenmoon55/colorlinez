@@ -1,0 +1,285 @@
+<canvas id="canvas" height="600" width="780" style="background:#333"></canvas>
+<script>
+var canvas = document.getElementById("canvas");
+canvas.onclick = onClick;
+
+var ctx  = canvas.getContext("2d");
+var colors = ["red", "#039518", "#ff00dc", "#ff6a00", "gray", "#0094ff", "#d2ce00"];
+var balls = new Array(10);
+
+function onClick(e) {
+	var px = e.offsetX - map.startX;
+	var py = e.offsetY - map.startY;
+	if (px < 0 || py < 0 || px > map.sideSize || py > map.sideSize) return;
+	var x = Math.ceil(px / map.cellSize);
+	var y = Math.ceil(py / map.cellSize);
+	if (balls[x][y] === -1) {
+		if (map.selected) {
+			if (map.findPath(map.selectedX, map.selectedY, x, y)) {
+				balls[map.selectedX][map.selectedY].moveTo(x, y);
+				map.selected = false;
+				map.check(x, y);
+			}
+			else console.log("can't get there = = ");
+		}
+		else return;
+	}
+	else {
+		if (map.selected) balls[map.selectedX][map.selectedY].unselect();
+		balls[x][y].select();
+	}
+}
+
+function Ball(x, y, color)
+{
+	this.x = x;
+	this.y = y;
+	this.color = color;
+	this.draw = function() {
+		var px = map.startX + map.cellSize * (this.x - 0.5);
+		var py = map.startY + map.cellSize * (this.y - 0.5);
+		ctx.beginPath();
+		var gradient = ctx.createRadialGradient(px - 7, py - 7, 0, px, py, map.radius);
+	    gradient.addColorStop(0, "white");
+	    gradient.addColorStop(1, this.color);
+		ctx.arc(px, py, map.radius, 0, Math.PI * 2);
+		ctx.fillStyle = gradient;
+		ctx.fill();
+	}
+	this.drawNew = function(i) {
+		var px = 20 + map.cellSize * (i - 0.5);
+		var py = 20 + map.cellSize * 0.5;
+		ctx.beginPath();
+		var gradient = ctx.createRadialGradient(px - 7, py - 7, 0, px, py, map.radius);
+	    gradient.addColorStop(0, "white");
+	    gradient.addColorStop(1, this.color);
+		ctx.arc(px, py, map.radius, 0, Math.PI * 2);
+		ctx.fillStyle = gradient;
+		ctx.fill();
+	}
+	this.select = function() {
+		var px = map.startX + map.cellSize * (this.x - 0.5);
+		var py = map.startY + map.cellSize * (this.y - 0.5);
+		ctx.beginPath();
+		var gradient = ctx.createRadialGradient(px - 8, py - 8, 0, px, py, map.radius + 2);
+	    gradient.addColorStop(0, "white");
+	    gradient.addColorStop(1, this.color);
+		ctx.arc(px, py, 2 + map.radius, 0, Math.PI * 2);
+		ctx.fillStyle = gradient;
+		ctx.fill();
+		map.selected = true;
+		map.selectedX = this.x;
+		map.selectedY = this.y;
+	}
+	this.unselect = function() {
+		this.clear();
+		this.draw();
+		map.selected = false;
+	}
+	this.clear = function() {
+		var px = map.startX + map.cellSize * (this.x - 1) + 1;
+		var py = map.startY + map.cellSize * (this.y - 1) + 1;
+		ctx.clearRect(px, py, map.cellSize - 2, map.cellSize - 2);
+	}
+	this.moveTo = function(x, y) {
+		console.log(this.x + " " + this.y);
+		console.log(x + " " + y);
+		this.clear();
+		balls[this.x][this.y] = -1;
+		this.x = x;
+		this.y = y;
+		balls[x][y] = this;
+		this.draw();
+		generate();
+	}
+}
+
+var map = {
+	startX: 20,
+	startY: 60,
+	cellSize: 40,
+	sideSize: 360, // 如何修改？
+	radius: 15,
+	selected: false,
+	selectedX: 0,
+	selectedY: 0,
+	drawGrid: function() {
+		ctx.beginPath();
+		var x = this.startX, y = this.startY;
+
+		for(var i = 0; i <= 9; i++){	
+			ctx.moveTo(x, y);	
+			ctx.lineTo(x + this.cellSize * 9, y);
+			y += this.cellSize;
+		}
+		
+		x = this.startX;
+		y = this.startY;
+
+		for(var i = 0; i <= 9; i++){
+			ctx.moveTo(x, y);
+			ctx.lineTo(x, y + this.cellSize * 9);
+			x += this.cellSize;
+		
+		}
+
+		ctx.rect(20, 20, this.cellSize*3, this.cellSize);
+		ctx.strokeStyle="#567";
+		ctx.stroke();
+	},
+	drawBall: function(x, y, color) {
+		var px = this.startX + this.cellSize * (x - 0.5);
+		var py = this.startY + this.cellSize * (y - 0.5);
+		ctx.beginPath();
+		ctx.arc(px, py, this.radius, 0, Math.PI * 2);
+		ctx.strokeStyle = "white";
+		ctx.stroke();
+		ctx.fillStyle = color;
+		ctx.fill();
+	},
+	drawNewBall: function(ball, i) {
+		var px = 20 + this.cellSize * (i - 0.5);
+		var py = 20 + this.cellSize * 0.5;
+		ctx.beginPath();
+		var gradient = ctx.createRadialGradient(px - 5, py - 5, 0, px, py, 10);
+	    gradient.addColorStop(0, "white");
+	    gradient.addColorStop(1, ball.color);
+		ctx.arc(px, py, this.radius, 0, Math.PI * 2);
+		//ctx.strokeStyle = "white";
+		//ctx.stroke();
+		ctx.fillStyle = gradient;
+		ctx.fill();
+	},
+	clearCell: function(x, y) {
+		var px = this.startX + this.cellSize * (x - 1) + 1;
+		var py = this.startY + this.cellSize * (y - 1) + 1;
+		ctx.clearRect(px, py, this.cellSize - 2, this.cellSize - 2);
+	},
+	findPath: function(x1, y1, x2, y2) {
+		console.log(x1 + " findpath" + x2);
+		var color = balls[x1][y1].color;
+		var used = new Array(10);
+		for (i = 1; i <= 9; i++) {
+			used[i] = new Array(10);
+			for (j = 1; j <= 9; j++) {
+				used[i][j] = false;
+			}
+		}
+		var queue = [];
+		queue.push(balls[x1][y1]);
+		used[x1][y1] = true;
+		var newX, newY;
+		while (queue.length) {
+			var first = queue.shift();
+			console.log(first.x + " " + first.y);
+			newX = first.x + 1;
+			newY = first.y;
+			if (newX == x2 && newY == y2) return true;
+			if (newX <= 9 && !used[newX][newY] && balls[newX][newY] === -1) {
+				used[newX][newY] = true;
+				//queue.push(balls[newX][newY]);
+				queue.push({x:newX, y:newY});
+			}
+			newX = first.x - 1;
+			if (newX == x2 && newY == y2) return true;
+			if (newX > 0 && !used[newX][newY] && balls[newX][newY] === -1) {
+				used[newX][newY] = true;
+				queue.push({x:newX, y:newY});
+			}
+			newX = first.x;
+			newY = first.y + 1;
+			if (newX == x2 && newY == y2) return true;
+			if (newY <= 9 && !used[newX][newY] && balls[newX][newY] === -1) {
+				used[newX][newY] = true;
+				queue.push({x:newX, y:newY});
+			}
+			newY = first.y - 1;
+			if (newX == x2 && newY == y2) return true;
+			if (newY > 0 && !used[newX][newY] && balls[newX][newY] === -1) {
+				used[newX][newY] = true;
+				queue.push({x:newX, y:newY});
+			}
+		}
+		return false;
+	},
+	check: function(x, y) {
+		var color = balls[x][y].color;
+		var newX = x - 1;
+		var newY = y;
+		var count = 0;
+		while (newX > 0) {
+			if (balls[newX][newY] === -1 || balls[newX][newY].color != color) break;
+			++count;
+			--newX;
+		}
+		newX = x + 1;
+		while (newX <= 9) {
+			if (balls[newX][newY] === -1 || balls[newX][newY].color != color) break;
+			++count;
+			++newX;
+		}
+		if (count >= 4) {
+			for (i = newX - count - 1; i < newX; i++) {
+				if (balls[i][newY] != -1) {
+					balls[i][newY].clear();
+					balls[i][newY] = -1;
+				}				
+			}
+		}
+
+		count = 0;
+		newY = y - 1;
+		while (newY > 0) {
+			if (balls[newX][newY] === -1 || balls[newX][newY].color != color) break;
+			++count;
+			--newY;
+		}
+		newY = y + 1;
+		while (newY <= 9) {
+			if (balls[newX][newY] === -1 || balls[newX][newY].color != color) break;
+			++count;
+			++newY;
+		}
+		if (count >= 4) {
+			for (i = newY - count - 1; i < newY; i++) {
+				if (balls[newX][i] != -1) {
+					balls[newX][i].clear();
+					balls[newX][i] = -1;
+				}	
+			}
+		}
+	}
+}
+
+
+function generate() {
+	for (var i = 1; i <= 3; i++) {
+		var color = colors[Math.floor(Math.random() * colors.length)];
+		//var randomX = Math.ceil(Math.random() * 9);
+		//var randomY = Math.ceil(Math.random() * 9);
+		var randomX, randomY;
+		do {
+			randomX = Math.ceil(Math.random() * 9);
+			randomY = Math.ceil(Math.random() * 9);
+		} while(balls[randomX][randomY] != -1);
+		var ball = new Ball(randomX, randomY, color);
+		balls[randomX][randomY] = ball;
+		console.log (balls[randomX][randomY]);
+		//balls.push(ball);
+		ball.drawNew(i);
+		ball.draw();
+		//map.drawNewBall(balls[i-1], i);
+	}
+
+}
+
+for (i = 1; i <= 9; i++) {
+	balls[i] = new Array(10);
+	for (j = 1; j <= 9; j++) {
+		balls[i][j] = -1;
+	}
+}
+map.drawGrid();
+generate();
+
+</script>
