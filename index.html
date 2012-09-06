@@ -43,6 +43,7 @@ function Ball(color)
 		ctx.arc(px, py, map.radius, 0, Math.PI * 2);
 		ctx.fillStyle = gradient;
 		ctx.fill();
+		++map.count;
 	}
 	this.drawNew = function(i) {
 		var px = 20 + map.cellSize * (i - 0.5);
@@ -78,10 +79,10 @@ function Ball(color)
 		var px = map.startX + map.cellSize * (this.x - 1) + 1;
 		var py = map.startY + map.cellSize * (this.y - 1) + 1;
 		ctx.clearRect(px, py, map.cellSize - 2, map.cellSize - 2);
+		--map.count;
+
 	}
 	this.moveTo = function(x, y) {
-		console.log(this.x + " " + this.y);
-		console.log(x + " " + y);
 		this.clear();
 		balls[this.x][this.y] = -1;
 		this.x = x;
@@ -112,6 +113,7 @@ var map = {
 	selected: false,
 	selectedX: 0,
 	selectedY: 0,
+	count: 0,
 	drawGrid: function() {
 		ctx.beginPath();
 		var x = this.startX, y = this.startY;
@@ -326,7 +328,9 @@ var map = {
 		while(newBalls.length) {
 			temp = newBalls.shift();
 			temp.place();
+			map.check(temp.x, temp.y);
 		}
+		console.log(map.count);
 		for (var i = 1; i <= 3; i++) {
 			var color = colors[Math.floor(Math.random() * colors.length)];
 			var ball = new Ball(color);
